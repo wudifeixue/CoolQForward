@@ -18,9 +18,18 @@
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
 > | Packet Length  | Int       |       |
+> | Mark           | Int       | 用于标识 |
 > | ID             | String    |       |
 > | Permissions    | String    | 监听事件标识，用','隔开，例如:'21,2,4'表示监听私聊事件、群消息事件、讨论组事件 |
-3. 响应事件/对酷Q请求操作
+3. 收到一个应答数据包
+> | Name          | Type      | Notes |
+> |---------------|-----------|-------|
+> | Packet Length | Int       |       |
+> | Type          | Int       | 固定为0 |
+> | Mark          | Int       | 与传递过来的Mark相同 |
+> | Code          | Int       | 应答码 |
+> | Msg           | String    | 应答信息 |
+4. 响应事件/对酷Q请求操作
 
 ------------------------------------
 ## 数据包规范
@@ -38,19 +47,18 @@
 > | String Length | Int       |       |
 > | String        | RawString |       |
 
-------------------------------------
+### 事件数据包解包规范
 
-+ 应答包规范，以下整体封装在Packet中
++ 事件数据包规范，以下整体封装在Packet中
 > | Name          | Type      | Notes |
 > |---------------|-----------|-------|
-> | Code          | Int       | 应答码 |
-> | Msg           | String    | 应答信息 |
+> | Type          | Int       | 事件包为1 |
+> | Event         | Int       | 事件ID |
 > | Data          | ByteArray | 附加数据 |
 
-### 事件数据包解包规范
 + 以下整体封装在Data中
 
-#### PrivateMsg事件，应答码21，私聊消息
+#### PrivateMsg事件，事件ID21，私聊消息
 > | Name    | Type   | Notes |
 > |---------|--------|-------|
 > | subType | Int    | 子类型，11/来自好友 1/来自在线状态 2/来自群 3/来自讨论组 |
@@ -64,7 +72,7 @@
 > |         | Int    | 字体样式 1:粗体,2:斜体,4:下划线 |
 > |         | Int    | 字体气泡 |
 
-#### GroupMsg事件，应答码2，群消息
+#### GroupMsg事件，事件ID2，群消息
 > | Name          | Type      | Notes |
 > |---------------|-----------|-------|
 > | subType       | Int       | 子类型，目前固定为1 |
@@ -84,7 +92,7 @@
 > |               | Int       | 字体样式 1:粗体,2:斜体,4:下划线 |
 > |               | Int       | 字体气泡 |
 
-#### DiscussMsg事件，应答码4，讨论组消息
+#### DiscussMsg事件，事件ID4，讨论组消息
 > | Name          | Type      | Notes |
 > |---------------|-----------|-------|
 > | subType       | Int       | 子类型，目前固定为1 |
@@ -99,7 +107,7 @@
 > |               | Int       | 字体样式 1:粗体,2:斜体,4:下划线 |
 > |               | Int       | 字体气泡 |
 
-#### GroupUpload事件，应答码11，群文件上传事件
+#### GroupUpload事件，事件ID11，群文件上传事件
 > | Name          | Type      | Notes |
 > |---------------|-----------|-------|
 > | subType       | Int       | 子类型，目前固定为1 |
@@ -112,7 +120,7 @@
 > |               | String    | 文件名 |
 > |               | String    | 文件ID |
 
-#### System_GroupAdmin事件，应答码101，群事件-管理员变动
+#### System_GroupAdmin事件，事件ID101，群事件-管理员变动
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
 > | subType        | Int       | 子类型，1/被取消管理员 2/被设置管理员 |
@@ -120,7 +128,7 @@
 > | fromGroup      | Long      | 来源群号 |
 > | beingOperateQQ | Long      | 被操作QQ |
 
-#### System_GroupMemberDecrease事件，应答码102，群事件-群成员减少
+#### System_GroupMemberDecrease事件，事件ID102，群事件-群成员减少
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
 > | subType        | Int       | 子类型，1/群员离开 2/群员被踢 |
@@ -129,7 +137,7 @@
 > | fromQQ         | Long      | 操作者QQ(子类型为2时为管理员QQ) |
 > | beingOperateQQ | Long      | 被操作QQ |
 
-#### System_GroupMemberIncrease事件，应答码103，群事件-群成员增加
+#### System_GroupMemberIncrease事件，事件ID103，群事件-群成员增加
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
 > | subType        | Int       | 子类型，1/管理员已同意 2/管理员邀请 |
@@ -138,14 +146,14 @@
 > | fromQQ         | Long      | 操作者QQ(管理员QQ) |
 > | beingOperateQQ | Long      | 被操作QQ(加群的QQ) |
 
-#### Friend_Add事件，应答码201，好友事件-好友已添加
+#### Friend_Add事件，事件ID201，好友事件-好友已添加
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
 > | subType        | Int       | 子类型，目前固定为1 |
 > | sendTime       | Int       | 发送时间(时间戳) |
 > | fromQQ         | Long      | 来源QQ |
 
-#### Request_AddFriend事件，应答码301，请求-好友添加
+#### Request_AddFriend事件，事件ID301，请求-好友添加
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
 > | subType        | Int       | 子类型，目前固定为1 |
@@ -154,7 +162,7 @@
 > | msg            | String    | 附言 |
 > | responseFlag   | String    | 反馈标识(处理请求用) |
 
-#### Request_AddGroup事件，应答码302，请求-群添加
+#### Request_AddGroup事件，事件ID302，请求-群添加
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
 > | subType        | Int       | 子类型，1/他人申请入群，2/自己受邀入群 |
@@ -168,14 +176,18 @@
 
 ### 操作数据包封包规范
 + 以下整体封装在Packet中
-+ 操作请求数据包
++ 请求数据包规范
 > | Name           | Type      | Notes |
 > |----------------|-----------|-------|
-> | operate        | Int       | 请求的操作 |
-> | arguments      | ByteArray | 请求时的参数 |
-+ 操作应答数据包
+> | Operate        | Int       | 请求的操作 |
+> | Mark           | Int       | 用于标识 |
+> | Arguments      | ByteArray | 请求时的参数 |
+
++ 应答数据包规范，以下整体封装在Packet中
 > | Name          | Type      | Notes |
 > |---------------|-----------|-------|
+> | Type          | Int       | 应答包为0 |
+> | Mark          | Int       | 与传递过来的Mark相同 |
 > | Code          | Int       | 应答码 |
 > | Msg           | String    | 应答信息 |
 > | Data          | ByteArray | 附加数据 |
